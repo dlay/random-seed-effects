@@ -1,24 +1,15 @@
 {
   "DATA_SET_NAMES": [
-    "adressa",
-    "citeulike-a",
-    "cosmetics-shop",
-    "globo",
-    "gowalla",
-    "hetrec-lastfm",
-    "nowplaying",
-    "retailrocket",
-    "sketchfab",
-    "yelp"
+    "adressa"
   ],
   "PRUNE_TECHNIQUES": [
-    "five_core",
-    "five_user_warm_start",
-    "five_item_warm_start",
+    "five-core",
+    "five-user-warm-start",
+    "five-item-warm-start",
     "none"
   ],
   "SPLIT_TECHNIQUES": [
-    "weak_generalization"
+    "weak-generalization"
   ],
   "NUM_FOLDS": 5,
   "RECOMMENDERS": [

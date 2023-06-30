@@ -4,10 +4,12 @@ from pathlib import Path
 from select_experiment import experiment_file, stage
 from collect_evaluation import collect_evaluation
 
+from static import *
+
 
 def execute_clean_data(data_set_names):
     for data_set_name in data_set_names:
-        base_path = f"./data/{data_set_name}/processed/processed.csv"
+        base_path = f"./{DATA_FOLDER}/{data_set_name}/{CLEAN_FOLDER}/{CLEAN_FILE}"
         if not Path(base_path).exists():
             subprocess.run(["py", "-3.9", "clean_data.py", "--data_set_name", f"{data_set_name}"])
 
@@ -15,56 +17,76 @@ def execute_clean_data(data_set_names):
 def execute_prune_data(data_set_names, prune_techniques):
     for data_set_name in data_set_names:
         for prune_technique in prune_techniques:
-            base_path = f"./data/{data_set_name}/pruned/pruned.csv"
+            base_path = f"./{DATA_FOLDER}/{data_set_name}/{PRUNE_FOLDER}/{prune_technique}_{PRUNE_FILE}"
             if not Path(base_path).exists():
                 subprocess.run(
                     ["py", "-3.9", "prune_data.py", "--data_set_name", f"{data_set_name}", "--prune_technique",
                      f"{prune_technique}"])
 
 
-def execute_generate_splits(data_set_names, split_techniques, num_folds):
+def execute_generate_splits(data_set_names, prune_techniques, split_techniques, num_folds):
     for data_set_name in data_set_names:
-        for split_technique in split_techniques:
-            for i in range(num_folds):
-                base_path = f"./data/{data_set_name}/split/split_{i}.csv"
-                if not Path(base_path).exists():
-                    subprocess.run(
-                        ["py", "-3.9", "generate_splits.py", "--data_set_name", f"{data_set_name}", "--split_technique",
-                         f"{split_technique}", "--num_folds", f"{num_folds}"])
-                    break
+        for prune_technique in prune_techniques:
+            for split_technique in split_techniques:
+                subprocess.run(
+                    ["py", "-3.9", "generate_splits.py", "--data_set_name", f"{data_set_name}", "--prune_technique",
+                     f"{prune_technique}", "--split_technique", f"{split_technique}", "--num_folds", f"{num_folds}"])
 
 
-def execute_fit_recommender(data_set_names, num_folds, recommenders):
+def execute_fit_recommender(data_set_names, prune_techniques, split_techniques, num_folds, recommenders,
+                            recommender_seeding):
     for data_set_name in data_set_names:
-        shuffle_seeds = []
-        for file in Path(f"./data/{data_set_name}/split").iterdir():
-            shuffle_seeds.append(file.name.split(".")[0].split("_")[-1])
-        shuffle_seeds = list(set(shuffle_seeds))
-        for recommender in recommenders:
-            for shuffle_seed in shuffle_seeds:
-                for i in range(num_folds):
-                    base_path = f"./data/{data_set_name}/recommender_{recommender}/{i}_{shuffle_seed}.bpk"
-                    if not Path(base_path).exists():
-                        subprocess.run(
-                            ["py", "-3.9", "fit_recommender.py", "--data_set_name", f"{data_set_name}", "--num_folds",
-                             f"{num_folds}", "--test_fold", f"{i}", "--shuffle_seed", f"{shuffle_seed}",
-                             "--recommender", f"{recommender}"])
+        for prune_technique in prune_techniques:
+            for split_technique in split_techniques:
+                shuffle_seeds = []
+                for file in Path(f"./{DATA_FOLDER}/{data_set_name}/{SPLIT_FOLDER}").iterdir():
+                    _, file_seed, file_prune_technique, file_split_technique, _ = file.name.split(".")[0].split("_")
+                    if file_prune_technique == prune_technique and file_split_technique == split_technique:
+                        shuffle_seeds.append(file_seed)
+                shuffle_seeds = list(set(shuffle_seeds))
+                for recommender in recommenders:
+                    for shuffle_seed in shuffle_seeds:
+                        for recommender_seed in recommender_seeding:
+                            for test_fold in range(num_folds):
+                                base_path = f"./{DATA_FOLDER}/{data_set_name}/{RECOMMENDER_FOLDER}_{recommender}/" \
+                                            f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_" \
+                                            f"{recommender_seed}_{RECOMMENDER_FILE}"
+                                if not Path(base_path).exists():
+                                    subprocess.run(
+                                        ["py", "-3.9", "fit_recommender.py", "--data_set_name",
+                                         f"{data_set_name}", "--prune_technique", f"{prune_technique}",
+                                         "--split_technique", f"{split_technique}", "--num_folds", f"{num_folds}",
+                                         "--test_fold", f"{test_fold}", "--shuffle_seed", f"{shuffle_seed}",
+                                         "--recommender", f"{recommender}", "--recommender_seeding",
+                                         f"{recommender_seed}"])
 
 
-def execute_make_predictions(data_set_names, num_folds, recommenders):
+def execute_make_predictions(data_set_names, prune_techniques, split_techniques, num_folds, recommenders,
+                             recommender_seeding):
     for data_set_name in data_set_names:
-        shuffle_seeds = []
-        for file in Path(f"./data/{data_set_name}/split").iterdir():
-            shuffle_seeds.append(file.name.split(".")[0].split("_")[-1])
-        shuffle_seeds = list(set(shuffle_seeds))
-        for recommender in recommenders:
-            for shuffle_seed in shuffle_seeds:
-                for i in range(num_folds):
-                    base_path = f"./data/{data_set_name}/predictions_{recommender}/{i}_{shuffle_seed}.pkl"
-                    if not Path(base_path).exists():
-                        subprocess.run(
-                            ["py", "-3.9", "make_predictions.py", "--data_set_name", f"{data_set_name}", "--test_fold",
-                             f"{i}", "--shuffle_seed", f"{shuffle_seed}", "--recommender", f"{recommender}"])
+        for prune_technique in prune_techniques:
+            for split_technique in split_techniques:
+                shuffle_seeds = []
+                for file in Path(f"./{DATA_FOLDER}/{data_set_name}/{SPLIT_FOLDER}").iterdir():
+                    _, file_seed, file_prune_technique, file_split_technique, _ = file.name.split(".")[0].split("_")
+                    if file_prune_technique == prune_technique and file_split_technique == split_technique:
+                        shuffle_seeds.append(file_seed)
+                shuffle_seeds = list(set(shuffle_seeds))
+                for recommender in recommenders:
+                    for shuffle_seed in shuffle_seeds:
+                        for recommender_seed in recommender_seeding:
+                            for test_fold in range(num_folds):
+                                base_path = f"./{DATA_FOLDER}/{data_set_name}/{PREDICTION_FOLDER}_{recommender}/" \
+                                            f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_" \
+                                            f"{recommender_seed}_{PREDICTION_FILE}"
+                                if not Path(base_path).exists():
+                                    subprocess.run(
+                                        ["py", "-3.9", "make_predictions.py", "--data_set_name",
+                                         f"{data_set_name}", "--prune_technique", f"{prune_technique}",
+                                         "--split_technique", f"{split_technique}", "--num_folds", f"{num_folds}",
+                                         "--test_fold", f"{test_fold}", "--shuffle_seed", f"{shuffle_seed}",
+                                         "--recommender", f"{recommender}", "--recommender_seeding",
+                                         f"{recommender_seed}"])
 
 
 def execute_evaluate_predictions(data_set_names, num_folds, recommenders, topn_scores):
@@ -96,14 +118,16 @@ if stage == 0:
 elif stage == 1:
     execute_prune_data(experiment_settings["DATA_SET_NAMES"], experiment_settings["PRUNE_TECHNIQUES"])
 elif stage == 2:
-    execute_generate_splits(experiment_settings["DATA_SET_NAMES"], experiment_settings["SPLIT_TECHNIQUES"],
-                            experiment_settings["NUM_FOLDS"])
+    execute_generate_splits(experiment_settings["DATA_SET_NAMES"], experiment_settings["PRUNE_TECHNIQUES"],
+                            experiment_settings["SPLIT_TECHNIQUES"], experiment_settings["NUM_FOLDS"])
 elif stage == 3:
-    execute_fit_recommender(experiment_settings["DATA_SET_NAMES"], experiment_settings["NUM_FOLDS"],
-                            experiment_settings["RECOMMENDERS"])
+    execute_fit_recommender(experiment_settings["DATA_SET_NAMES"], experiment_settings["PRUNE_TECHNIQUES"],
+                            experiment_settings["SPLIT_TECHNIQUES"], experiment_settings["NUM_FOLDS"],
+                            experiment_settings["RECOMMENDERS"], experiment_settings["RECOMMENDER_SEEDING"])
 elif stage == 4:
-    execute_make_predictions(experiment_settings["DATA_SET_NAMES"], experiment_settings["NUM_FOLDS"],
-                             experiment_settings["RECOMMENDERS"])
+    execute_make_predictions(experiment_settings["DATA_SET_NAMES"], experiment_settings["PRUNE_TECHNIQUES"],
+                             experiment_settings["SPLIT_TECHNIQUES"], experiment_settings["NUM_FOLDS"],
+                             experiment_settings["RECOMMENDERS"], experiment_settings["RECOMMENDER_SEEDING"])
 elif stage == 5:
     execute_evaluate_predictions(experiment_settings["DATA_SET_NAMES"], experiment_settings["NUM_FOLDS"],
                                  experiment_settings["RECOMMENDERS"], experiment_settings["TOPN_SCORES"])
