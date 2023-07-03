@@ -67,7 +67,7 @@ def fit_recommender(data_set_name, prune_technique, split_technique, num_folds, 
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser("Scoring optimizer fit recommender!")
+    parser = argparse.ArgumentParser("Random Seed Effects fit recommender!")
     parser.add_argument('--data_set_name', dest='data_set_name', type=str, required=True)
     parser.add_argument('--prune_technique', dest='prune_technique', type=str, required=True)
     parser.add_argument('--split_technique', dest='split_technique', type=str, required=True)
