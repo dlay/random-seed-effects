@@ -102,7 +102,7 @@ def execute_fit_recommender(data_set_names, prune_techniques, split_techniques, 
                                 base_path = f"./{DATA_FOLDER}/{data_set_name}/{RECOMMENDER_FOLDER}_{recommender}/" \
                                             f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_" \
                                             f"{recommender_seed}_{RECOMMENDER_FILE}"
-                                if not Path(base_path).exists():
+                                if not Path(base_path).exists() or Path(base_path).stat().st_size == 0:
                                     script_name = f"_OPT_stage3_fit_{data_set_name}_{prune_technique}_" \
                                                   f"{split_technique}_{shuffle_seed}_{num_folds}_{recommender}_" \
                                                   f"{recommender_seed}_{test_fold}"
@@ -151,7 +151,7 @@ def execute_make_predictions(data_set_names, prune_techniques, split_techniques,
                                     base_path = f"./{DATA_FOLDER}/{data_set_name}/{PREDICTION_FOLDER}_{recommender}/" \
                                                 f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_" \
                                                 f"{recommender_seed}_{num_batches}_{run_batch}_{PREDICTION_FILE}"
-                                    if not Path(base_path).exists():
+                                    if not Path(base_path).exists() or Path(base_path).stat().st_size == 0:
                                         script_name = f"_OPT_stage4_predict_{data_set_name}_{prune_technique}_" \
                                                       f"{split_technique}_{shuffle_seed}_{num_folds}_{recommender}_" \
                                                       f"{recommender_seed}_{test_fold}_{num_batches}_{run_batch}"
@@ -185,6 +185,8 @@ def execute_make_predictions(data_set_names, prune_techniques, split_techniques,
 def execute_evaluate_predictions(data_set_names, prune_techniques, split_techniques, num_folds, recommenders,
                                  recommender_seeding, num_batches, topn_scores, job_time, job_memory, job_cores,
                                  fail_email):
+    topn_scores_string = '-'.join([str(x) for x in topn_scores])
+    topn_scores_script = ' '.join([str(x) for x in topn_scores])
     for data_set_name in data_set_names:
         for prune_technique in prune_techniques:
             for split_technique in split_techniques:
@@ -198,43 +200,40 @@ def execute_evaluate_predictions(data_set_names, prune_techniques, split_techniq
                     for shuffle_seed in shuffle_seeds:
                         for recommender_seed in recommender_seeding:
                             for test_fold in range(num_folds):
-                                for run_batch in range(num_batches):
-                                    for topn_score in topn_scores:
-                                        base_path = f"./{DATA_FOLDER}/{data_set_name}/{EVALUATION_FOLDER}_" \
-                                                    f"{recommender}/{test_fold}_{shuffle_seed}_{prune_technique}_" \
-                                                    f"{split_technique}_{recommender_seed}_{num_batches}_{run_batch}_" \
-                                                    f"{topn_score}_{EVALUATION_FILE}"
-                                        if not Path(base_path).exists():
-                                            script_name = \
-                                                f"_OPT_stage5_evaluate_{data_set_name}_{prune_technique}_" \
-                                                f"{split_technique}_{shuffle_seed}_{num_folds}_{recommender}_" \
-                                                f"{recommender_seed}_{test_fold}_{num_batches}_{run_batch}_{topn_score}"
-                                            script = "#!/bin/bash\n" \
-                                                     "#SBATCH --nodes=1\n" \
-                                                     f"#SBATCH --cpus-per-task={job_cores}\n" \
-                                                     "#SBATCH --mail-type=FAIL\n" \
-                                                     f"#SBATCH --mail-user={fail_email}\n" \
-                                                     "#SBATCH --partition=short,medium,long\n" \
-                                                     f"#SBATCH --time={job_time}\n" \
-                                                     f"#SBATCH --mem={job_memory}\n" \
-                                                     "#SBATCH --output=./omni_out/%x_%j.out\n" \
-                                                     "module load singularity\n" \
-                                                     "singularity exec --pwd /mnt --bind ./:/mnt ./scoring.sif python -u " \
-                                                     "./evaluate_predictions.py " \
-                                                     f"--data_set_name {data_set_name} " \
-                                                     f"--prune_technique {prune_technique} " \
-                                                     f"--split_technique {split_technique} " \
-                                                     f"--test_fold {test_fold} " \
-                                                     f"--shuffle_seed {shuffle_seed} " \
-                                                     f"--recommender {recommender} " \
-                                                     f"--recommender_seed {recommender_seed} " \
-                                                     f"--num_batches {num_batches} " \
-                                                     f"--run_batch {run_batch} " \
-                                                     f"--topn_score {topn_score}"
-                                            with open(f"./{script_name}.sh", 'w', newline='\n') as f:
-                                                f.write(script)
-                                            subprocess.run(["sbatch", f"./{script_name}.sh"])
-                                            Path(f"./{script_name}.sh").unlink()
+                                base_path = f"./{DATA_FOLDER}/{data_set_name}/{EVALUATION_FOLDER}_" \
+                                            f"{recommender}/{test_fold}_{shuffle_seed}_{prune_technique}_" \
+                                            f"{split_technique}_{recommender_seed}_{num_batches}_" \
+                                            f"{topn_scores_string}_{EVALUATION_FILE}"
+                                if not Path(base_path).exists() or Path(base_path).stat().st_size == 0:
+                                    script_name = \
+                                        f"_OPT_stage5_evaluate_{data_set_name}_{prune_technique}_" \
+                                        f"{split_technique}_{shuffle_seed}_{num_folds}_{recommender}_" \
+                                        f"{recommender_seed}_{test_fold}_{num_batches}_{topn_scores_string}"
+                                    script = "#!/bin/bash\n" \
+                                             "#SBATCH --nodes=1\n" \
+                                             f"#SBATCH --cpus-per-task={job_cores}\n" \
+                                             "#SBATCH --mail-type=FAIL\n" \
+                                             f"#SBATCH --mail-user={fail_email}\n" \
+                                             "#SBATCH --partition=short,medium,long\n" \
+                                             f"#SBATCH --time={job_time}\n" \
+                                             f"#SBATCH --mem={job_memory}\n" \
+                                             "#SBATCH --output=./omni_out/%x_%j.out\n" \
+                                             "module load singularity\n" \
+                                             "singularity exec --pwd /mnt --bind ./:/mnt ./scoring.sif python -u " \
+                                             "./evaluate_predictions.py " \
+                                             f"--data_set_name {data_set_name} " \
+                                             f"--prune_technique {prune_technique} " \
+                                             f"--split_technique {split_technique} " \
+                                             f"--test_fold {test_fold} " \
+                                             f"--shuffle_seed {shuffle_seed} " \
+                                             f"--recommender {recommender} " \
+                                             f"--recommender_seed {recommender_seed} " \
+                                             f"--num_batches {num_batches} " \
+                                             f"--topn_scores {topn_scores_script}"
+                                    with open(f"./{script_name}.sh", 'w', newline='\n') as f:
+                                        f.write(script)
+                                    subprocess.run(["sbatch", f"./{script_name}.sh"])
+                                    Path(f"./{script_name}.sh").unlink()
 
 
 parser = argparse.ArgumentParser("HPC Executor Script for Random Seed Effects!")

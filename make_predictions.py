@@ -11,7 +11,7 @@ from static import *
 
 
 def make_predictions(data_set_name, prune_technique, split_technique, test_fold, shuffle_seed, recommender,
-                     recommender_seeding, num_batches, run_batch):
+                     recommender_seed, num_batches, run_batch):
     # get test data
     test_data = pd.read_csv(
         f"./{DATA_FOLDER}/{data_set_name}/{SPLIT_FOLDER}/"
@@ -24,7 +24,7 @@ def make_predictions(data_set_name, prune_technique, split_technique, test_fold,
     base_path_recommender = f"./{DATA_FOLDER}/{data_set_name}/{RECOMMENDER_FOLDER}_{recommender}"
     recommender_alg = binpickle.load(f"{base_path_recommender}/"
                                      f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_"
-                                     f"{recommender_seeding}_{RECOMMENDER_FILE}")
+                                     f"{recommender_seed}_{RECOMMENDER_FILE}")
 
     # make predictions
     recommendations = {user: recommender_alg.recommend(user, n=20) for user in user_batches[run_batch]}
@@ -34,7 +34,7 @@ def make_predictions(data_set_name, prune_technique, split_technique, test_fold,
     Path(base_path_predictions).mkdir(parents=True, exist_ok=True)
     pkl.dump(recommendations, open(f"{base_path_predictions}/"
                                    f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_"
-                                   f"{recommender_seeding}_{num_batches}_{run_batch}_{PREDICTION_FILE}", "wb"))
+                                   f"{recommender_seed}_{num_batches}_{run_batch}_{PREDICTION_FILE}", "wb"))
     print(f"Predictions generated and saved.")
 
     return

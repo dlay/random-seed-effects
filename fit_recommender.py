@@ -15,7 +15,7 @@ from static import *
 
 
 def fit_recommender(data_set_name, prune_technique, split_technique, num_folds, test_fold, shuffle_seed, recommender,
-                    recommender_seeding):
+                    recommender_seed):
     # get train data
     train_folds = [x for x in range(num_folds) if x != test_fold]
     train_data_dfs = []
@@ -27,24 +27,24 @@ def fit_recommender(data_set_name, prune_technique, split_technique, num_folds, 
     train_data = pd.concat(train_data_dfs, ignore_index=True)
 
     # obtain seed for recommender
-    if recommender_seeding == "random":
-        recommender_seed = np.random.randint(0, np.iinfo(np.int32).max)
-    elif recommender_seeding == "static":
-        recommender_seed = 42
+    if recommender_seed == "random":
+        recommender_seed_actual = np.random.randint(0, np.iinfo(np.int32).max)
+    elif recommender_seed == "static":
+        recommender_seed_actual = 42
     else:
         raise ValueError("Recommender seeding method not recognized.")
 
     # select the recommender
     if recommender == "random":
-        recommender_alg = Random(rng_spec=recommender_seed)
+        recommender_alg = Random(rng_spec=recommender_seed_actual)
     elif recommender == "popularity":
         recommender_alg = Recommender.adapt(PopScore())
     elif recommender == "implicit-mf":
-        recommender_alg = Recommender.adapt(ImplicitMF(features=100, rng_spec=recommender_seed))
+        recommender_alg = Recommender.adapt(ImplicitMF(features=100, rng_spec=recommender_seed_actual))
     elif recommender == "user-knn":
-        recommender_alg = Recommender.adapt(UserUser(nnbrs=20, feedback='implicit', rng_spec=recommender_seed))
+        recommender_alg = Recommender.adapt(UserUser(nnbrs=20, feedback='implicit', rng_spec=recommender_seed_actual))
     elif recommender == "item-knn":
-        recommender_alg = Recommender.adapt(ItemItem(nnbrs=20, feedback='implicit', rng_spec=recommender_seed))
+        recommender_alg = Recommender.adapt(ItemItem(nnbrs=20, feedback='implicit', rng_spec=recommender_seed_actual))
     else:
         raise ValueError("Recommender not supported!")
 
@@ -56,11 +56,11 @@ def fit_recommender(data_set_name, prune_technique, split_technique, num_folds, 
     Path(base_path_recommender).mkdir(exist_ok=True)
     binpickle.dump(recommender_alg, f"{base_path_recommender}/"
                                     f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_"
-                                    f"{recommender_seeding}_{RECOMMENDER_FILE}")
+                                    f"{recommender_seed}_{RECOMMENDER_FILE}")
     with open(f"{base_path_recommender}/"
               f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_"
-              f"{recommender_seeding}_{RECOMMENDER_SEED_FILE}", "w") as f:
-        f.write(f"{recommender_seed}")
+              f"{recommender_seed}_{RECOMMENDER_SEED_FILE}", "w") as f:
+        f.write(f"{recommender_seed_actual}")
     print(f"Fitted recommender and saved to file.")
 
     return

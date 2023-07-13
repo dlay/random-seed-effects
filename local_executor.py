@@ -3,7 +3,7 @@ import subprocess
 from pathlib import Path
 from select_experiment import experiment_file, stage
 from evaluation_report import evaluation_report
-
+from plot_results import plot_results
 from static import *
 
 
@@ -92,6 +92,7 @@ def execute_make_predictions(data_set_names, prune_techniques, split_techniques,
 
 def execute_evaluate_predictions(data_set_names, prune_techniques, split_techniques, num_folds, recommenders,
                                  recommender_seeding, num_batches, topn_scores):
+    topn_scores_string = '-'.join([str(x) for x in topn_scores])
     for data_set_name in data_set_names:
         for prune_technique in prune_techniques:
             for split_technique in split_techniques:
@@ -105,27 +106,29 @@ def execute_evaluate_predictions(data_set_names, prune_techniques, split_techniq
                     for shuffle_seed in shuffle_seeds:
                         for recommender_seed in recommender_seeding:
                             for test_fold in range(num_folds):
-                                for run_batch in range(num_batches):
-                                    for topn_score in topn_scores:
-                                        base_path = f"./{DATA_FOLDER}/{data_set_name}/{EVALUATION_FOLDER}_{recommender}/" \
-                                                    f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_" \
-                                                    f"{recommender_seed}_{num_batches}_{run_batch}_{topn_score}_" \
-                                                    f"{EVALUATION_FILE}"
-                                        if not Path(base_path).exists():
-                                            subprocess.run(
-                                                ["py", "-3.9", "evaluate_predictions.py", "--data_set_name",
-                                                 f"{data_set_name}", "--prune_technique", f"{prune_technique}",
-                                                 "--split_technique", f"{split_technique}", "--test_fold",
-                                                 f"{test_fold}", "--shuffle_seed", f"{shuffle_seed}", "--recommender",
-                                                 f"{recommender}", "--recommender_seeding", f"{recommender_seed}",
-                                                 "--num_batches", f"{num_batches}", "--run_batch", f"{run_batch}",
-                                                 "--topn_score", f"{topn_score}"])
+                                base_path = f"./{DATA_FOLDER}/{data_set_name}/{EVALUATION_FOLDER}_{recommender}/" \
+                                            f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_" \
+                                            f"{recommender_seed}_{num_batches}_{topn_scores_string}_" \
+                                            f"{EVALUATION_FILE}"
+                                if not Path(base_path).exists():
+                                    subprocess.run(
+                                        ["py", "-3.9", "evaluate_predictions.py", "--data_set_name",
+                                         f"{data_set_name}", "--prune_technique", f"{prune_technique}",
+                                         "--split_technique", f"{split_technique}", "--test_fold",
+                                         f"{test_fold}", "--shuffle_seed", f"{shuffle_seed}", "--recommender",
+                                         f"{recommender}", "--recommender_seeding", f"{recommender_seed}",
+                                         "--num_batches", f"{num_batches}", "--topn_scores"] + [f"{r}" for r in
+                                                                                                topn_scores])
 
 
 def execute_evaluation_report(data_set_names, prune_techniques, split_techniques, num_folds, recommenders,
                               recommender_seeding, num_batches, topn_scores):
     evaluation_report(data_set_names, prune_techniques, split_techniques, num_folds, recommenders,
                       recommender_seeding, num_batches, topn_scores)
+
+
+def execute_plot_results():
+    plot_results()
 
 
 experiment_settings = json.load(open(f"./experiment_{experiment_file}.json"))
@@ -155,6 +158,8 @@ elif stage == 6:
                               experiment_settings["SPLIT_TECHNIQUES"], experiment_settings["NUM_FOLDS"],
                               experiment_settings["RECOMMENDERS"], experiment_settings["RECOMMENDER_SEEDING"],
                               experiment_settings["NUM_BATCHES"], experiment_settings["TOPN_SCORES"])
+elif stage == 7:
+    execute_plot_results()
 
 else:
     print("No valid stage selected!")
