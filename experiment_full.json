@@ -31,7 +31,7 @@
     5,
     10
   ],
-  "JOB_FAIL_EMAIL": "lukas.wegmeth@uni-siegen.de",
+  "JOB_FAIL_EMAIL": "",
   "STAGE0_CLEANING_TIME": "00:30:00",
   "STAGE0_CLEANING_MEMORY": "128G",
   "STAGE0_CLEANING_CORES": 1,
