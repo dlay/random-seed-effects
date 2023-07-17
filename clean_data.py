@@ -25,25 +25,15 @@ def clean_data(data_set_name):
                 dfs.append(pd.DataFrame(file_data, columns=["user", "item"]))
         data = pd.concat(dfs).copy()
     elif data_set_name == "cds-and-vinyl" or data_set_name == "musical-instruments" or data_set_name == "video-games":
-        data = pd.read_csv(f"{base_path_original}/amazon.json", header=0, sep=',',
-                           usecols=['user_id', 'item_id', 'rating'],
-                           dtype={
-                               'user_id': np.int64,
-                               'item_id': np.int64,
-                               'rating': np.float64
-                           })[['user_id', 'item_id', 'rating']]
-        data.rename(columns={'user_id': 'user', 'item_id': 'item'}, inplace=True)
+        data = pd.read_json(f"{base_path_original}/amazon.json", lines=True,
+                            dtype={
+                                'reviewerID': str,
+                                'asin': str,
+                                'overall': np.float64,
+                                'unixReviewTime': np.float64
+                            })[['reviewerID', 'asin', 'overall']]
+        data.rename(columns={'reviewerID': 'user', 'asin': 'item', 'overall': 'rating'}, inplace=True)
         data = data[data["rating"] > 3][["user", "item"]]
-    elif data_set_name == "goodreads":
-        relevant_data = pd.read_csv(f"{base_path_original}/goodreads.csv", header=0, sep=',',
-                                    usecols=['user_id', 'book_id', 'rating'],
-                                    dtype={
-                                        'user_id': np.int64,
-                                        'book_id': np.int64,
-                                        'rating': np.float64
-                                    })
-        relevant_data.rename(columns={'user_id': 'user', 'book_id': 'item'}, inplace=True)
-        data = relevant_data[relevant_data["rating"] > 3][["user", "item"]]
     elif data_set_name == "gowalla":
         data = pd.read_csv(f"{base_path_original}/Gowalla_totalCheckins.txt",
                            names=["user", "check-in time", "latitude", "longitude", "item"],

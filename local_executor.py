@@ -1,7 +1,7 @@
 import json
 import subprocess
 from pathlib import Path
-from select_experiment import experiment_file, stage
+from select_experiment import file, stage
 from evaluation_report import evaluation_report
 from plot_results import plot_results
 from static import *
@@ -131,7 +131,7 @@ def execute_plot_results():
     plot_results()
 
 
-experiment_settings = json.load(open(f"./experiment_{experiment_file}.json"))
+experiment_settings = json.load(open(f"./experiment_{file}.json"))
 if stage == 0:
     execute_clean_data(experiment_settings["DATA_SET_NAMES"])
 elif stage == 1:

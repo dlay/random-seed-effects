@@ -129,6 +129,7 @@ def plot_results():
                                                                      relevant_data["Metric Value"].min()})
                     stat_table = pd.DataFrame(stat_table_rows)
                     latex_table = stat_table.to_latex(index=False)
+                    '''
 
                     # plot absolute results
                     sns.set(font_scale=.5)
@@ -143,13 +144,19 @@ def plot_results():
                     # plot relative results
                     cat = sns.catplot(
                         data=plot_table,
-                        x="Relative Metric Value", y="Validation", hue="Data Shuffle Seed", row="k", col="Metric",
+                        x="Relative Metric Value (Mean)", y="Validation", hue="Data Shuffle Seed", row="k", col="Metric",
                         palette="colorblind", height=1, aspect=3, s=10)
                     plt.subplots_adjust(top=0.85)
                     cat.fig.suptitle(f"{data_set_name} - {recommender}")
-                    plt.savefig(f'_relative_{data_set_name}-{recommender}.pdf', bbox_inches="tight")
-
-                    '''
+                    plt.savefig(f'_relative_mean_{data_set_name}-{recommender}.pdf', bbox_inches="tight")
+                    cat = sns.catplot(
+                        data=plot_table,
+                        x="Relative Metric Value (Max)", y="Validation", hue="Data Shuffle Seed", row="k",
+                        col="Metric",
+                        palette="colorblind", height=1, aspect=3, s=10)
+                    plt.subplots_adjust(top=0.85)
+                    cat.fig.suptitle(f"{data_set_name} - {recommender}")
+                    plt.savefig(f'_relative_max_{data_set_name}-{recommender}.pdf', bbox_inches="tight")
 
     aggregated_results = {}
     for data_set_name in plot_tables.keys():
@@ -183,6 +190,7 @@ def plot_results():
                         plt.show()
                         print()
                 '''
+                '''
                 # plot relative results
                 sns.set(font_scale=.5)
                 sns.set_style("darkgrid", {"grid.color": ".6", "grid.linestyle": ":"})
@@ -191,11 +199,33 @@ def plot_results():
                     x="Relative Metric Value (Mean)", y="Validation", row="k", col="Metric",
                     palette="colorblind", height=1, aspect=3, kind="box", fliersize=0.8, linewidth=0.5, whis=1.5)
                 plt.subplots_adjust(top=0.85)
-                cat.fig.suptitle(f"{recommender} aggregated")
+                cat.fig.suptitle(f"{recommender} aggregated (mean)")
                 range_to_max = relevant_data["Relative Metric Value (Mean)"].max() - 1
+                print(f"Range to max HO: {range_to_max}")
+                range_to_max_cv = relevant_data.loc[relevant_data["Validation"] ==
+                                                    "cross-validation", "Relative Metric Value (Mean)"].max() - 1
+                print(f"Range to max CV: {range_to_max_cv}")
                 range_to_min = 1 - relevant_data["Relative Metric Value (Mean)"].min()
-                maximum_range = max(range_to_max, range_to_min)*1.1
+                print(f"Range to min HO: {range_to_min}")
+                range_to_min_cv = 1 - relevant_data.loc[relevant_data["Validation"] ==
+                                                        "cross-validation", "Relative Metric Value (Mean)"].min()
+                print(f"Range to min CV: {range_to_min_cv}")
+                maximum_range = max(range_to_max, range_to_min) * 1.1
                 cat.set(xlim=(1 - maximum_range, 1 + maximum_range))
-                plt.savefig(f'_agg-{recommender}.pdf', bbox_inches="tight")
+                plt.savefig(f'_agg-mean-{recommender}.pdf', bbox_inches="tight")
 
+                cat = sns.catplot(
+                    data=relevant_data,
+                    x="Relative Metric Value (Max)", y="Validation", row="k", col="Metric",
+                    palette="colorblind", height=1, aspect=3, kind="box", fliersize=0.8, linewidth=0.5, whis=1.5)
+                plt.subplots_adjust(top=0.85)
+                cat.fig.suptitle(f"{recommender} aggregated (max)")
+                min_value = relevant_data["Relative Metric Value (Max)"].min()
+                print(f"Min value HO: {min_value}")
+                min_value_cv = relevant_data.loc[relevant_data["Validation"] ==
+                                                    "cross-validation", "Relative Metric Value (Max)"].min()
+                print(f"Min value CV: {min_value_cv}")
+                cat.set(xlim=(min_value - 0.01, 1.01))
+                plt.savefig(f'_agg-max-{recommender}.pdf', bbox_inches="tight")
+                '''
     print()

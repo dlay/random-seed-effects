@@ -1,4 +1,4 @@
-# loads settings from file experiment_template.json
-experiment_file = "test"
+# loads settings from file experiment_file.json
+file = "full"
 # select local execution stage
-stage = 6
+stage = 0

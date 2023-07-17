@@ -1,49 +1,37 @@
 {
   "DATA_SET_NAMES": [
     "adressa",
-    "citeulike-a",
-    "cosmetics-shop",
-    "globo",
+    "cds-and-vinyl",
     "gowalla",
     "hetrec-lastfm",
-    "nowplaying",
+    "movielens-1m",
+    "musical-instruments",
     "retailrocket",
-    "sketchfab",
+    "video-games",
     "yelp"
   ],
   "PRUNE_TECHNIQUES": [
-    "five_core",
-    "five_user_warm_start",
-    "five_item_warm_start",
-    "none"
+    "five-core"
   ],
   "SPLIT_TECHNIQUES": [
-    "weak_generalization"
+    "weak-generalization"
   ],
   "NUM_FOLDS": 5,
   "RECOMMENDERS": [
     "implicit-mf",
-    "user-knn",
     "item-knn",
-    "random",
     "popularity"
   ],
   "RECOMMENDER_SEEDING": [
-    "static",
     "random"
   ],
+  "NUM_BATCHES": 10,
   "TOPN_SCORES": [
     1,
-    2,
-    3,
-    4,
     5,
-    8,
-    10,
-    15,
-    20
+    10
   ],
-  "JOB_FAIL_EMAIL": "",
+  "JOB_FAIL_EMAIL": "lukas.wegmeth@uni-siegen.de",
   "STAGE0_CLEANING_TIME": "00:30:00",
   "STAGE0_CLEANING_MEMORY": "128G",
   "STAGE0_CLEANING_CORES": 1,
@@ -56,10 +44,10 @@
   "STAGE3_FITTING_TIME": "06:00:00",
   "STAGE3_FITTING_MEMORY": "224G",
   "STAGE3_FITTING_CORES": 64,
-  "STAGE4_PREDICTING_TIME": "06:00:00",
-  "STAGE4_PREDICTING_MEMORY": "224G",
-  "STAGE4_PREDICTING_CORES": 8,
-  "STAGE5_EVALUATING_TIME": "01:00:00",
-  "STAGE5_EVALUATING_MEMORY": "224G",
+  "STAGE4_PREDICTING_TIME": "04:00:00",
+  "STAGE4_PREDICTING_MEMORY": "8G",
+  "STAGE4_PREDICTING_CORES": 1,
+  "STAGE5_EVALUATING_TIME": "06:00:00",
+  "STAGE5_EVALUATING_MEMORY": "8G",
   "STAGE5_EVALUATING_CORES": 1
 }
