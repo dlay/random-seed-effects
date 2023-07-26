@@ -159,4 +159,11 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
 
-/data/
+/data/*/original/*
+!/data/*/original/readme.md
+/data/*/cleaned/*
+/data/*/pruned/*
+/data/*/split/*
+/data/*/recommender*/*
+/data/*/evaluations*/*
+
