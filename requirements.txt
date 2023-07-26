@@ -1,0 +1,6 @@
+lenskit>=0.14.1
+numpy>=1.22.4
+pandas>=1.5.3
+matplotlib>=3.5.1
+seaborn>=0.12.2
+binpickle>=0.3.4
