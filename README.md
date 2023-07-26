@@ -8,7 +8,7 @@ This is the implementation for our study of the effects of data split random see
 ___
 This project was tested with Python 3.9 on Windows, Mac, and Linux.  
 You can install the required packages using the `requirements.txt` file.  
-You can also run this with singularity. You can build the image using the `scoring.def` file.
+You can also run this with singularity. You can build the image using the `rse.def` file.
 
 ## Usage
 
