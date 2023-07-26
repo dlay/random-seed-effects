@@ -205,7 +205,7 @@ def plot_results():
                 print(recommender_title)
 
                 # plot relative results
-                sns.set(font_scale=.6)
+                sns.set(font_scale=.5)
                 sns.set_style("ticks")
                 sns.set_style("whitegrid",
                               {"grid.color": ".8", "grid.linestyle": "--", "grid.lineWidth": ".3", "xtick.bottom": True,
@@ -216,9 +216,10 @@ def plot_results():
                     x="Relative Metric Value (Min)", y="Validation", row="k", col="Metric",
                     palette="colorblind", height=1, aspect=3, kind="box", fliersize=0.8, linewidth=0.5, whis=1.5)
                 cat.set_axis_labels('', '')
-                cat.fig.supylabel('Validation')
-                plt.subplots_adjust(top=0.83)
-                cat.fig.suptitle(f"{recommender_title}\nAggregated results relative to minimum accuracy in %")
+                cat.fig.supylabel('Validation Method')
+                cat.fig.supxlabel('Accuracy Depending on Data Split Random Seed - Relative to Minimum Accuracy in %')
+                plt.subplots_adjust(top=0.88)
+                cat.fig.suptitle(f"{recommender_title}")
                 max_value = relevant_data.loc[relevant_data["Validation"] ==
                                               "HO", "Relative Metric Value (Min)"].max()
                 print(f"Max value HO: {max_value}")
@@ -238,9 +239,10 @@ def plot_results():
                     x="Relative Metric Value (Max)", y="Validation", row="k", col="Metric",
                     palette="colorblind", height=1, aspect=3, kind="box", fliersize=0.8, linewidth=0.5, whis=1.5)
                 cat.set_axis_labels('', '')
-                cat.fig.supylabel('Validation')
-                plt.subplots_adjust(top=0.83)
-                cat.fig.suptitle(f"{recommender_title}\naggregated results relative to maximum accuracy")
+                cat.fig.supylabel('Validation Method')
+                cat.fig.supxlabel('Accuracy Depending on Data Split Random Seed - Relative to Maximum Accuracy in %')
+                plt.subplots_adjust(top=0.88)
+                cat.fig.suptitle(f"{recommender_title}")
                 min_value = relevant_data.loc[relevant_data["Validation"] ==
                                               "HO", "Relative Metric Value (Max)"].min()
                 print(f"Min value HO: {min_value}")
@@ -252,6 +254,7 @@ def plot_results():
                     cutoff, metric = ax.get_title().split(" |")
                     ax.set_title(f"{metric.split(' = ')[1][:-2]}@{cutoff.split('= ')[1]}")
                     ax.axhline(0.5, color='grey', linestyle='-', linewidth=0.6)
+                cat.fig.subplots_adjust(wspace=0.1, hspace=0.5)
                 plt.savefig(f'./plots/_agg-max-{recommender}.pdf', bbox_inches="tight")
 
                 cat = sns.catplot(
@@ -259,9 +262,10 @@ def plot_results():
                     x="Relative Metric Value (Mean)", y="Validation", row="k", col="Metric",
                     palette="colorblind", height=1, aspect=3, kind="box", fliersize=0.8, linewidth=0.5, whis=1.5)
                 cat.set_axis_labels('', '')
-                cat.fig.supylabel('Validation')
-                plt.subplots_adjust(top=0.83)
-                cat.fig.suptitle(f"{recommender_title}\naggregated results relative to mean accuracy in %")
+                cat.fig.supylabel('Validation Method')
+                cat.fig.supxlabel('Accuracy Depending on Data Split Random Seed - Relative to Mean Accuracy in %')
+                plt.subplots_adjust(top=0.88)
+                cat.fig.suptitle(f"{recommender_title}")
                 range_to_max = relevant_data.loc[relevant_data["Validation"] ==
                                                  "HO", "Relative Metric Value (Mean)"].max() - 100
                 print(f"Range to max HO: {range_to_max}")
@@ -280,6 +284,7 @@ def plot_results():
                     cutoff, metric = ax.get_title().split(" |")
                     ax.set_title(f"{metric.split(' = ')[1][:-2]}@{cutoff.split('= ')[1]}")
                     ax.axhline(0.5, color='grey', linestyle='-', linewidth=0.6)
+                cat.fig.subplots_adjust(wspace=0.1, hspace=0.5)
                 plt.savefig(f'./plots/_agg-mean-{recommender}.pdf', bbox_inches="tight")
 
     return
