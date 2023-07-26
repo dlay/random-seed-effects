@@ -2,7 +2,6 @@ import argparse
 import json
 import subprocess
 from pathlib import Path
-
 from static import *
 
 
@@ -10,7 +9,7 @@ def execute_clean_data(data_set_names, job_time, job_memory, job_cores, fail_ema
     for data_set_name in data_set_names:
         base_path = f"./{DATA_FOLDER}/{data_set_name}/{CLEAN_FOLDER}/{CLEAN_FILE}"
         if not Path(base_path).exists():
-            script_name = f"_OPT_stage0_clean_{data_set_name}"
+            script_name = f"_RSE_stage0_clean_{data_set_name}"
             script = "#!/bin/bash\n" \
                      "#SBATCH --nodes=1\n" \
                      f"#SBATCH --cpus-per-task={job_cores}\n" \
@@ -35,7 +34,7 @@ def execute_prune_data(data_set_names, prune_techniques, job_time, job_memory, j
         for prune_technique in prune_techniques:
             base_path = f"./{DATA_FOLDER}/{data_set_name}/{PRUNE_FOLDER}/{prune_technique}_{PRUNE_FILE}"
             if not Path(base_path).exists():
-                script_name = f"_OPT_stage1_prune_{data_set_name}_{prune_technique}"
+                script_name = f"_RSE_stage1_prune_{data_set_name}_{prune_technique}"
                 script = "#!/bin/bash\n" \
                          "#SBATCH --nodes=1\n" \
                          f"#SBATCH --cpus-per-task={job_cores}\n" \
@@ -61,7 +60,7 @@ def execute_generate_splits(data_set_names, prune_techniques, split_techniques, 
     for data_set_name in data_set_names:
         for prune_technique in prune_techniques:
             for split_technique in split_techniques:
-                script_name = f"_OPT_stage2_split_{data_set_name}_{prune_technique}_{split_technique}_{num_folds}"
+                script_name = f"_RSE_stage2_split_{data_set_name}_{prune_technique}_{split_technique}_{num_folds}"
                 script = "#!/bin/bash\n" \
                          "#SBATCH --nodes=1\n" \
                          f"#SBATCH --cpus-per-task={job_cores}\n" \
@@ -103,7 +102,7 @@ def execute_fit_recommender(data_set_names, prune_techniques, split_techniques, 
                                             f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_" \
                                             f"{recommender_seed}_{RECOMMENDER_FILE}"
                                 if not Path(base_path).exists() or Path(base_path).stat().st_size == 0:
-                                    script_name = f"_OPT_stage3_fit_{data_set_name}_{prune_technique}_" \
+                                    script_name = f"_RSE_stage3_fit_{data_set_name}_{prune_technique}_" \
                                                   f"{split_technique}_{shuffle_seed}_{num_folds}_{recommender}_" \
                                                   f"{recommender_seed}_{test_fold}"
                                     script = "#!/bin/bash\n" \
@@ -152,7 +151,7 @@ def execute_make_predictions(data_set_names, prune_techniques, split_techniques,
                                                 f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_" \
                                                 f"{recommender_seed}_{num_batches}_{run_batch}_{PREDICTION_FILE}"
                                     if not Path(base_path).exists() or Path(base_path).stat().st_size == 0:
-                                        script_name = f"_OPT_stage4_predict_{data_set_name}_{prune_technique}_" \
+                                        script_name = f"_RSE_stage4_predict_{data_set_name}_{prune_technique}_" \
                                                       f"{split_technique}_{shuffle_seed}_{num_folds}_{recommender}_" \
                                                       f"{recommender_seed}_{test_fold}_{num_batches}_{run_batch}"
                                         script = "#!/bin/bash\n" \
@@ -206,7 +205,7 @@ def execute_evaluate_predictions(data_set_names, prune_techniques, split_techniq
                                             f"{topn_scores_string}_{EVALUATION_FILE}"
                                 if not Path(base_path).exists() or Path(base_path).stat().st_size == 0:
                                     script_name = \
-                                        f"_OPT_stage5_evaluate_{data_set_name}_{prune_technique}_" \
+                                        f"_RSE_stage5_evaluate_{data_set_name}_{prune_technique}_" \
                                         f"{split_technique}_{shuffle_seed}_{num_folds}_{recommender}_" \
                                         f"{recommender_seed}_{test_fold}_{num_batches}_{topn_scores_string}"
                                     script = "#!/bin/bash\n" \

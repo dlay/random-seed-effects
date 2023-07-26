@@ -1,6 +1,4 @@
 from pathlib import Path
-
-import pandas as pd
 from static import *
 import pickle as pkl
 
@@ -63,3 +61,5 @@ def evaluation_report(data_set_names, prune_techniques, split_techniques, num_fo
     with open(f"evaluation_report.pkl", "wb") as file:
         pkl.dump(report_dict, file)
     print("Evaluation report saved.")
+
+    return

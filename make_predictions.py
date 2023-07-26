@@ -1,12 +1,9 @@
 import argparse
 from pathlib import Path
-
 import binpickle
 import numpy as np
-
 import pandas as pd
 import pickle as pkl
-
 from static import *
 
 

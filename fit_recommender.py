@@ -1,16 +1,13 @@
 import argparse
 from pathlib import Path
-
 import binpickle
 import numpy as np
-
 import pandas as pd
 from lenskit import Recommender
 from lenskit.algorithms.basic import Random, PopScore
 from lenskit.algorithms.als import ImplicitMF
 from lenskit.algorithms.user_knn import UserUser
 from lenskit.algorithms.item_knn import ItemItem
-
 from static import *
 
 

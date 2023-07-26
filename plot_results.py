@@ -1,3 +1,4 @@
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -6,6 +7,7 @@ import pickle as pkl
 
 
 def plot_results():
+    Path("./plots").mkdir(exist_ok=True)
     topn_limiter = [1, 5, 10]
     report = pkl.load(open("evaluation_report.pkl", "rb"))
     plot_tables = {}
@@ -78,23 +80,31 @@ def plot_results():
                                                    (plot_table["topn_score"] == k) &
                                                    (plot_table["validation_type"] == validation) &
                                                    (plot_table["metric"] == metric)]["metric_value"]
+                                    min_val = metric_vals.min()
                                     max_val = metric_vals.max()
                                     mean_val = metric_vals.mean()
                                     plot_table.loc[
                                         (plot_table["recommender_seed"] == recommender_seed) &
                                         (plot_table["topn_score"] == k) &
                                         (plot_table["validation_type"] == validation) &
-                                        (plot_table[
-                                             "metric"] == metric), "metric_value_relative_max"] = metric_vals / max_val
+                                        (plot_table["metric"] == metric),
+                                        "metric_value_relative_min"] = ((metric_vals / min_val) - 1) * 100
                                     plot_table.loc[
                                         (plot_table["recommender_seed"] == recommender_seed) &
                                         (plot_table["topn_score"] == k) &
                                         (plot_table["validation_type"] == validation) &
-                                        (plot_table[
-                                             "metric"] == metric), "metric_value_relative_mean"] = metric_vals / mean_val
+                                        (plot_table["metric"] == metric),
+                                        "metric_value_relative_max"] = metric_vals / max_val
+                                    plot_table.loc[
+                                        (plot_table["recommender_seed"] == recommender_seed) &
+                                        (plot_table["topn_score"] == k) &
+                                        (plot_table["validation_type"] == validation) &
+                                        (plot_table["metric"] == metric),
+                                        "metric_value_relative_mean"] = (metric_vals / mean_val) * 100
                     plot_table.rename(columns={'recommender_seed': "Training Seed", 'shuffle_seed': "Data Shuffle Seed",
                                                'topn_score': "k", 'validation_type': "Validation",
                                                'metric': "Metric", 'metric_value': "Metric Value",
+                                               "metric_value_relative_min": "Relative Metric Value (Min)",
                                                "metric_value_relative_max": "Relative Metric Value (Max)",
                                                "metric_value_relative_mean": "Relative Metric Value (Mean)"},
                                       inplace=True)
@@ -108,7 +118,6 @@ def plot_results():
                         plot_tables[data_set_name][prune_technique][split_technique][recommender] = plot_table
 
                     '''
-
                     # print stats of metric values
                     stat_table_rows = []
                     for recommender_seed in plot_table["Training Seed"].unique():
@@ -131,6 +140,7 @@ def plot_results():
                     latex_table = stat_table.to_latex(index=False)
                     '''
 
+                    '''
                     # plot absolute results
                     sns.set(font_scale=.5)
                     sns.set_style("darkgrid", {"grid.color": ".6", "grid.linestyle": ":"})
@@ -140,7 +150,7 @@ def plot_results():
                         palette="colorblind", height=1, aspect=3, s=10)
                     plt.subplots_adjust(top=0.85)
                     cat.fig.suptitle(f"{data_set_name} - {recommender}")
-                    plt.savefig(f'_absolute_{data_set_name}-{recommender}.pdf', bbox_inches="tight")
+                    plt.savefig(f'./plots/_absolute_{data_set_name}-{recommender}.pdf', bbox_inches="tight")
                     # plot relative results
                     cat = sns.catplot(
                         data=plot_table,
@@ -148,7 +158,7 @@ def plot_results():
                         palette="colorblind", height=1, aspect=3, s=10)
                     plt.subplots_adjust(top=0.85)
                     cat.fig.suptitle(f"{data_set_name} - {recommender}")
-                    plt.savefig(f'_relative_mean_{data_set_name}-{recommender}.pdf', bbox_inches="tight")
+                    plt.savefig(f'./plots/_relative_mean_{data_set_name}-{recommender}.pdf', bbox_inches="tight")
                     cat = sns.catplot(
                         data=plot_table,
                         x="Relative Metric Value (Max)", y="Validation", hue="Data Shuffle Seed", row="k",
@@ -156,7 +166,8 @@ def plot_results():
                         palette="colorblind", height=1, aspect=3, s=10)
                     plt.subplots_adjust(top=0.85)
                     cat.fig.suptitle(f"{data_set_name} - {recommender}")
-                    plt.savefig(f'_relative_max_{data_set_name}-{recommender}.pdf', bbox_inches="tight")
+                    plt.savefig(f'./plots/_relative_max_{data_set_name}-{recommender}.pdf', bbox_inches="tight")
+                    '''
 
     aggregated_results = {}
     for data_set_name in plot_tables.keys():
@@ -178,54 +189,97 @@ def plot_results():
         for split_technique in aggregated_results[prune_technique].keys():
             for recommender in aggregated_results[prune_technique][split_technique].keys():
                 relevant_data = aggregated_results[prune_technique][split_technique][recommender]
-                '''
-                for k in relevant_data["k"].unique():
-                    for metric in relevant_data["Metric"].unique():
-                        # seaborn box plot
-                        sns.set(font_scale=.5)
-                        sns.set_style("darkgrid", {"grid.color": ".6", "grid.linestyle": ":"})
-                        relevant_data_c = relevant_data[(relevant_data["k"] == k) & (relevant_data["Metric"] == metric)].drop(columns=["Data Shuffle Seed"])
-                        box = sns.boxplot(data=relevant_data_c,
-                                          x="Relative Metric Value", y="Validation")
-                        plt.show()
-                        print()
-                '''
-                '''
+                relevant_data.loc[relevant_data["Validation"] == "cross-validation", "Validation"] = "CV"
+                relevant_data.loc[relevant_data["Validation"] == "holdout", "Validation"] = "HO"
+                relevant_data.loc[relevant_data["Metric"] == "Precision", "Metric"] = "Precision@k"
+                relevant_data.loc[relevant_data["Metric"] == "nDCG", "Metric"] = "nDCG@k"
+
+                recommender_title = recommender
+                if recommender == "implicit-mf":
+                    recommender_title = "Implicit Matrix Factorization with Alternating Least Squares (ALS)"
+                elif recommender == "item-knn":
+                    recommender_title = "Item-based k-Nearest Neighbors (ItemKNN)"
+                elif recommender == "popularity":
+                    recommender_title = "Popularity Recommender (Pop)"
+
+                print(recommender_title)
+
                 # plot relative results
-                sns.set(font_scale=.5)
-                sns.set_style("darkgrid", {"grid.color": ".6", "grid.linestyle": ":"})
+                sns.set(font_scale=.6)
+                sns.set_style("ticks")
+                sns.set_style("whitegrid",
+                              {"grid.color": ".8", "grid.linestyle": "--", "grid.lineWidth": ".3", "xtick.bottom": True,
+                               'xtick.color': 'grey'})
+
                 cat = sns.catplot(
                     data=relevant_data,
-                    x="Relative Metric Value (Mean)", y="Validation", row="k", col="Metric",
+                    x="Relative Metric Value (Min)", y="Validation", row="k", col="Metric",
                     palette="colorblind", height=1, aspect=3, kind="box", fliersize=0.8, linewidth=0.5, whis=1.5)
-                plt.subplots_adjust(top=0.85)
-                cat.fig.suptitle(f"{recommender} aggregated (mean)")
-                range_to_max = relevant_data["Relative Metric Value (Mean)"].max() - 1
-                print(f"Range to max HO: {range_to_max}")
-                range_to_max_cv = relevant_data.loc[relevant_data["Validation"] ==
-                                                    "cross-validation", "Relative Metric Value (Mean)"].max() - 1
-                print(f"Range to max CV: {range_to_max_cv}")
-                range_to_min = 1 - relevant_data["Relative Metric Value (Mean)"].min()
-                print(f"Range to min HO: {range_to_min}")
-                range_to_min_cv = 1 - relevant_data.loc[relevant_data["Validation"] ==
-                                                        "cross-validation", "Relative Metric Value (Mean)"].min()
-                print(f"Range to min CV: {range_to_min_cv}")
-                maximum_range = max(range_to_max, range_to_min) * 1.1
-                cat.set(xlim=(1 - maximum_range, 1 + maximum_range))
-                plt.savefig(f'_agg-mean-{recommender}.pdf', bbox_inches="tight")
+                cat.set_axis_labels('', '')
+                cat.fig.supylabel('Validation')
+                plt.subplots_adjust(top=0.83)
+                cat.fig.suptitle(f"{recommender_title}\nAggregated results relative to minimum accuracy in %")
+                max_value = relevant_data.loc[relevant_data["Validation"] ==
+                                              "HO", "Relative Metric Value (Min)"].max()
+                print(f"Max value HO: {max_value}")
+                max_value_cv = relevant_data.loc[relevant_data["Validation"] ==
+                                                 "CV", "Relative Metric Value (Min)"].max()
+                print(f"Max value CV: {max_value_cv}")
+                cat.set(xlim=(-1, max_value + 1))
+                for ax in cat.axes.flat:
+                    cutoff, metric = ax.get_title().split(" |")
+                    ax.set_title(f"{metric.split(' = ')[1][:-2]}@{cutoff.split('= ')[1]}")
+                    ax.axhline(0.5, color='grey', linestyle='-', linewidth=0.6)
+                cat.fig.subplots_adjust(wspace=0.1, hspace=0.5)
+                plt.savefig(f'./plots/_agg-min-{recommender}.pdf', bbox_inches="tight")
 
                 cat = sns.catplot(
                     data=relevant_data,
                     x="Relative Metric Value (Max)", y="Validation", row="k", col="Metric",
                     palette="colorblind", height=1, aspect=3, kind="box", fliersize=0.8, linewidth=0.5, whis=1.5)
-                plt.subplots_adjust(top=0.85)
-                cat.fig.suptitle(f"{recommender} aggregated (max)")
-                min_value = relevant_data["Relative Metric Value (Max)"].min()
+                cat.set_axis_labels('', '')
+                cat.fig.supylabel('Validation')
+                plt.subplots_adjust(top=0.83)
+                cat.fig.suptitle(f"{recommender_title}\naggregated results relative to maximum accuracy")
+                min_value = relevant_data.loc[relevant_data["Validation"] ==
+                                              "HO", "Relative Metric Value (Max)"].min()
                 print(f"Min value HO: {min_value}")
                 min_value_cv = relevant_data.loc[relevant_data["Validation"] ==
-                                                    "cross-validation", "Relative Metric Value (Max)"].min()
+                                                 "CV", "Relative Metric Value (Max)"].min()
                 print(f"Min value CV: {min_value_cv}")
                 cat.set(xlim=(min_value - 0.01, 1.01))
-                plt.savefig(f'_agg-max-{recommender}.pdf', bbox_inches="tight")
-                '''
-    print()
+                for ax in cat.axes.flat:
+                    cutoff, metric = ax.get_title().split(" |")
+                    ax.set_title(f"{metric.split(' = ')[1][:-2]}@{cutoff.split('= ')[1]}")
+                    ax.axhline(0.5, color='grey', linestyle='-', linewidth=0.6)
+                plt.savefig(f'./plots/_agg-max-{recommender}.pdf', bbox_inches="tight")
+
+                cat = sns.catplot(
+                    data=relevant_data,
+                    x="Relative Metric Value (Mean)", y="Validation", row="k", col="Metric",
+                    palette="colorblind", height=1, aspect=3, kind="box", fliersize=0.8, linewidth=0.5, whis=1.5)
+                cat.set_axis_labels('', '')
+                cat.fig.supylabel('Validation')
+                plt.subplots_adjust(top=0.83)
+                cat.fig.suptitle(f"{recommender_title}\naggregated results relative to mean accuracy in %")
+                range_to_max = relevant_data.loc[relevant_data["Validation"] ==
+                                                 "HO", "Relative Metric Value (Mean)"].max() - 100
+                print(f"Range to max HO: {range_to_max}")
+                range_to_max_cv = relevant_data.loc[relevant_data["Validation"] ==
+                                                    "CV", "Relative Metric Value (Mean)"].max() - 100
+                print(f"Range to max CV: {range_to_max_cv}")
+                range_to_min = 100 - relevant_data.loc[relevant_data["Validation"] ==
+                                                       "HO", "Relative Metric Value (Mean)"].min()
+                print(f"Range to min HO: {range_to_min}")
+                range_to_min_cv = 100 - relevant_data.loc[relevant_data["Validation"] ==
+                                                          "CV", "Relative Metric Value (Mean)"].min()
+                print(f"Range to min CV: {range_to_min_cv}")
+                maximum_range = max(range_to_max, range_to_min) * 1.1
+                cat.set(xlim=(100 - maximum_range, 100 + maximum_range))
+                for ax in cat.axes.flat:
+                    cutoff, metric = ax.get_title().split(" |")
+                    ax.set_title(f"{metric.split(' = ')[1][:-2]}@{cutoff.split('= ')[1]}")
+                    ax.axhline(0.5, color='grey', linestyle='-', linewidth=0.6)
+                plt.savefig(f'./plots/_agg-mean-{recommender}.pdf', bbox_inches="tight")
+
+    return

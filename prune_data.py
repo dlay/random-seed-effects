@@ -1,9 +1,7 @@
 import argparse
 from collections import Counter
 from pathlib import Path
-
 import pandas as pd
-
 from static import *
 
 
