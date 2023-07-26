@@ -19,8 +19,8 @@ The execution can be mixed between both entry points, e.g., you can start experi
 Both entries require you to set up an experiment configuration file.  
 The file `experiment_full.json` serves as an example configuration.  
 Make a copy of this file, configure your experiment, and replace `full` in the file name with your desired
-experiment name.
-The example configuration is already set up to run the full experiment as presented in our paper.
+experiment name.  
+The example configuration is already set up to run the full experiment as presented in our paper.  
 Note that you may omit configuration options if they are not required for your experiment, e.g. omit all SLURM options,
 if you never run the experiment on SLURM.
 
@@ -75,7 +75,7 @@ The stages are as follows:
     <li>Recommender predicting. The fitted recommender is used to predict ranked lists of recommendations.</li>
     <li>Evaluating predictions. Given a cutoff, the predictions are evaluated with ranking metrics.</li>
     <li>Reporting (local execution only). The evaluations are aggregated into a single report file.</li>
-    <li>Plotting (local execution only). the report file is used to generate plots and print statistics.</li>
+    <li>Plotting (local execution only). The report file is used to generate plots and print statistics.</li>
 </ol>
 
 ### Execution Option 1: SLURM execution
@@ -86,7 +86,7 @@ Example: `python hpc_executor.py --experiment full --stage 0`.
 
 ### Execution Option 2: Local execution
 
-Local execution requires a Python environment with the required packages.
+Local execution requires a Python environment with the required packages.  
 The entry point is `local_executor.py`.  
 The configuration is controlled via `select_experiment.py`.  
 Open `select_experiment.py`, make and save changes, then run `local_executor.py`.  
@@ -94,20 +94,20 @@ Example: `python local_executor.py`.
 
 ### Pre-Plotted results
 
-We make a collection of plots from to the experiments available.
-They are found in the folder `plots`.
+We make a collection of plots from to the experiments available.  
+They are found in the folder `plots`.  
 They are generated with the report file `evaluation_report.pkl` that contains all results from our experiments.
 
 ### Reproducibility
 
-Our experiments can be fully reproduced using the random seed file in this repository.
-The random seeds used to split the data and fit recommenders are found in the `project_seeds.txt` file.
-Running the experiments with our template file `experiment_full.json` that is in reproducibility mode by default, will use the seed file to reproduce our results.
+Our experiments can be fully reproduced using the random seed file in this repository.  
+The random seeds used to split the data and fit recommenders are found in the `project_seeds.txt` file.  
+Running all stages with our template file `experiment_full.json` that is in reproducibility mode by default, will use the seed file to reproduce our results.
 
 ## Notes
 
 ---
 Running locally is advised only for small tests.  
-It can take *extremely* long to run full experiments locally depending on your experiment configuration.
+It can take *extremely* long to run full experiments locally depending on your experiment configuration.  
 The execution heavily relies on massively parallel computing resources.  
 Running on an HPC cluster with SLURM is strongly advised for full experiments.
