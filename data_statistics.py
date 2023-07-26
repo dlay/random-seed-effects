@@ -1,13 +1,14 @@
+import json
 import pandas as pd
+from select_experiment import file
 
-data_sets = ["adressa", "cds-and-vinyl", "gowalla", "hetrec-lastfm", "movielens-1m", "musical-instruments",
-             "retailrocket", "video-games", "yelp"]
+experiment_settings = json.load(open(f"./experiment_{file}.json"))
 
 info_df = pd.DataFrame(
     columns=["#Interactions", "#Users", "#Items", "Avg.#Int. per user",
              "Avg.#Int. per item", "Sparsity"])
 
-for data_set in data_sets:
+for data_set in experiment_settings["DATA_SET_NAMES"]:
     data = pd.read_csv(f"./data/{data_set}/pruned/five-core_pruned.csv", sep=",", header=0)
     users = data["user"].unique()
     items = data["item"].unique()

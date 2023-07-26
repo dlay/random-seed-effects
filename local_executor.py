@@ -24,17 +24,26 @@ def execute_prune_data(data_set_names, prune_techniques):
                      f"{prune_technique}"])
 
 
-def execute_generate_splits(data_set_names, prune_techniques, split_techniques, num_folds):
+def execute_generate_splits(data_set_names, prune_techniques, split_techniques, num_folds, reproducibility_mode):
     for data_set_name in data_set_names:
         for prune_technique in prune_techniques:
             for split_technique in split_techniques:
-                subprocess.run(
-                    ["py", "-3.9", "generate_splits.py", "--data_set_name", f"{data_set_name}", "--prune_technique",
-                     f"{prune_technique}", "--split_technique", f"{split_technique}", "--num_folds", f"{num_folds}"])
+                def run_script(reproducibility_seed):
+                    subprocess.run(
+                        ["py", "-3.9", "generate_splits.py", "--data_set_name", f"{data_set_name}", "--prune_technique",
+                         f"{prune_technique}", "--split_technique", f"{split_technique}", "--num_folds",
+                         f"{num_folds}", "--reproducibility_seed", f"{reproducibility_seed}"])
+
+                if bool(reproducibility_mode):
+                    seeds = json.loads(open(f"project_seeds.txt", "r").read())
+                    for shuffle_seed in list(seeds[data_set_name].keys()):
+                        run_script(shuffle_seed)
+                else:
+                    run_script(-1)
 
 
 def execute_fit_recommender(data_set_names, prune_techniques, split_techniques, num_folds, recommenders,
-                            recommender_seeding):
+                            recommender_seeding, reproducibility_mode):
     for data_set_name in data_set_names:
         for prune_technique in prune_techniques:
             for split_technique in split_techniques:
@@ -48,17 +57,25 @@ def execute_fit_recommender(data_set_names, prune_techniques, split_techniques, 
                     for shuffle_seed in shuffle_seeds:
                         for recommender_seed in recommender_seeding:
                             for test_fold in range(num_folds):
-                                base_path = f"./{DATA_FOLDER}/{data_set_name}/{RECOMMENDER_FOLDER}_{recommender}/" \
-                                            f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_" \
-                                            f"{recommender_seed}_{RECOMMENDER_FILE}"
-                                if not Path(base_path).exists():
-                                    subprocess.run(
-                                        ["py", "-3.9", "fit_recommender.py", "--data_set_name",
-                                         f"{data_set_name}", "--prune_technique", f"{prune_technique}",
-                                         "--split_technique", f"{split_technique}", "--num_folds", f"{num_folds}",
-                                         "--test_fold", f"{test_fold}", "--shuffle_seed", f"{shuffle_seed}",
-                                         "--recommender", f"{recommender}", "--recommender_seeding",
-                                         f"{recommender_seed}"])
+                                def run_script(reproducibility_seed):
+                                    base_path = f"./{DATA_FOLDER}/{data_set_name}/{RECOMMENDER_FOLDER}_{recommender}/" \
+                                                f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_" \
+                                                f"{recommender_seed}_{RECOMMENDER_FILE}"
+                                    if not Path(base_path).exists():
+                                        subprocess.run(
+                                            ["py", "-3.9", "fit_recommender.py", "--data_set_name",
+                                             f"{data_set_name}", "--prune_technique", f"{prune_technique}",
+                                             "--split_technique", f"{split_technique}", "--num_folds", f"{num_folds}",
+                                             "--test_fold", f"{test_fold}", "--shuffle_seed", f"{shuffle_seed}",
+                                             "--recommender", f"{recommender}", "--recommender_seeding",
+                                             f"{recommender_seed}", "--reproducibility_seed",
+                                             f"{reproducibility_seed}"])
+
+                                if bool(reproducibility_mode):
+                                    seeds = json.loads(open(f"project_seeds.txt", "r").read())
+                                    run_script(seeds[data_set_name][shuffle_seed][recommender][str(test_fold)])
+                                else:
+                                    run_script(-1)
 
 
 def execute_make_predictions(data_set_names, prune_techniques, split_techniques, num_folds, recommenders,
@@ -138,11 +155,13 @@ elif stage == 1:
     execute_prune_data(experiment_settings["DATA_SET_NAMES"], experiment_settings["PRUNE_TECHNIQUES"])
 elif stage == 2:
     execute_generate_splits(experiment_settings["DATA_SET_NAMES"], experiment_settings["PRUNE_TECHNIQUES"],
-                            experiment_settings["SPLIT_TECHNIQUES"], experiment_settings["NUM_FOLDS"])
+                            experiment_settings["SPLIT_TECHNIQUES"], experiment_settings["NUM_FOLDS"],
+                            experiment_settings["REPRODUCIBILITY_MODE"])
 elif stage == 3:
     execute_fit_recommender(experiment_settings["DATA_SET_NAMES"], experiment_settings["PRUNE_TECHNIQUES"],
                             experiment_settings["SPLIT_TECHNIQUES"], experiment_settings["NUM_FOLDS"],
-                            experiment_settings["RECOMMENDERS"], experiment_settings["RECOMMENDER_SEEDING"])
+                            experiment_settings["RECOMMENDERS"], experiment_settings["RECOMMENDER_SEEDING"],
+                            experiment_settings["REPRODUCIBILITY_MODE"])
 elif stage == 4:
     execute_make_predictions(experiment_settings["DATA_SET_NAMES"], experiment_settings["PRUNE_TECHNIQUES"],
                              experiment_settings["SPLIT_TECHNIQUES"], experiment_settings["NUM_FOLDS"],

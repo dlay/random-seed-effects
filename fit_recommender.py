@@ -12,7 +12,7 @@ from static import *
 
 
 def fit_recommender(data_set_name, prune_technique, split_technique, num_folds, test_fold, shuffle_seed, recommender,
-                    recommender_seed):
+                    recommender_seed, reproducibility_seed):
     # get train data
     train_folds = [x for x in range(num_folds) if x != test_fold]
     train_data_dfs = []
@@ -25,7 +25,10 @@ def fit_recommender(data_set_name, prune_technique, split_technique, num_folds, 
 
     # obtain seed for recommender
     if recommender_seed == "random":
-        recommender_seed_actual = np.random.randint(0, np.iinfo(np.int32).max)
+        if reproducibility_seed == -1:
+            recommender_seed_actual = np.random.randint(0, np.iinfo(np.int32).max)
+        else:
+            recommender_seed_actual = reproducibility_seed
     elif recommender_seed == "static":
         recommender_seed_actual = 42
     else:
@@ -73,8 +76,9 @@ if __name__ == "__main__":
     parser.add_argument('--shuffle_seed', dest='shuffle_seed', type=int, required=True)
     parser.add_argument('--recommender', dest='recommender', type=str, required=True)
     parser.add_argument('--recommender_seeding', dest='recommender_seeding', type=str, required=True)
+    parser.add_argument('--reproducibility_seed', dest='reproducibility_seed', type=int, required=True)
     args = parser.parse_args()
 
     print("Fitting recommender with arguments: ", args.__dict__)
     fit_recommender(args.data_set_name, args.prune_technique, args.split_technique, args.num_folds, args.test_fold,
-                    args.shuffle_seed, args.recommender, args.recommender_seeding)
+                    args.shuffle_seed, args.recommender, args.recommender_seeding, args.reproducibility_seed)
