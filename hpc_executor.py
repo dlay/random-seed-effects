@@ -20,7 +20,7 @@ def execute_clean_data(data_set_names, job_time, job_memory, job_cores, fail_ema
                      f"#SBATCH --mem={job_memory}\n" \
                      "#SBATCH --output=./omni_out/%x_%j.out\n" \
                      "module load singularity\n" \
-                     "singularity exec --pwd /mnt --bind ./:/mnt ./scoring.sif python -u " \
+                     "singularity exec --pwd /mnt --bind ./:/mnt ./rse.sif python -u " \
                      "./clean_data.py " \
                      f"--data_set_name {data_set_name}"
             with open(f"./{script_name}.sh", 'w', newline='\n') as f:
@@ -45,7 +45,7 @@ def execute_prune_data(data_set_names, prune_techniques, job_time, job_memory, j
                          f"#SBATCH --mem={job_memory}\n" \
                          "#SBATCH --output=./omni_out/%x_%j.out\n" \
                          "module load singularity\n" \
-                         "singularity exec --pwd /mnt --bind ./:/mnt ./scoring.sif python -u " \
+                         "singularity exec --pwd /mnt --bind ./:/mnt ./rse.sif python -u " \
                          "./prune_data.py " \
                          f"--data_set_name {data_set_name} " \
                          f"--prune_technique {prune_technique}"
@@ -72,7 +72,7 @@ def execute_generate_splits(data_set_names, prune_techniques, split_techniques, 
                              f"#SBATCH --mem={job_memory}\n" \
                              "#SBATCH --output=./omni_out/%x_%j.out\n" \
                              "module load singularity\n" \
-                             "singularity exec --pwd /mnt --bind ./:/mnt ./scoring.sif python -u " \
+                             "singularity exec --pwd /mnt --bind ./:/mnt ./rse.sif python -u " \
                              "./generate_splits.py " \
                              f"--data_set_name {data_set_name} " \
                              f"--prune_technique {prune_technique} " \
@@ -125,7 +125,7 @@ def execute_fit_recommender(data_set_names, prune_techniques, split_techniques, 
                                                  f"#SBATCH --mem={job_memory}\n" \
                                                  "#SBATCH --output=./omni_out/%x_%j.out\n" \
                                                  "module load singularity\n" \
-                                                 "singularity exec --pwd /mnt --bind ./:/mnt ./scoring.sif python -u " \
+                                                 "singularity exec --pwd /mnt --bind ./:/mnt ./rse.sif python -u " \
                                                  "./fit_recommender.py " \
                                                  f"--data_set_name {data_set_name} " \
                                                  f"--prune_technique {prune_technique} " \
@@ -181,7 +181,7 @@ def execute_make_predictions(data_set_names, prune_techniques, split_techniques,
                                                  f"#SBATCH --mem={job_memory}\n" \
                                                  "#SBATCH --output=./omni_out/%x_%j.out\n" \
                                                  "module load singularity\n" \
-                                                 "singularity exec --pwd /mnt --bind ./:/mnt ./scoring.sif python -u " \
+                                                 "singularity exec --pwd /mnt --bind ./:/mnt ./rse.sif python -u " \
                                                  "./make_predictions.py " \
                                                  f"--data_set_name {data_set_name} " \
                                                  f"--prune_technique {prune_technique} " \
@@ -235,7 +235,7 @@ def execute_evaluate_predictions(data_set_names, prune_techniques, split_techniq
                                              f"#SBATCH --mem={job_memory}\n" \
                                              "#SBATCH --output=./omni_out/%x_%j.out\n" \
                                              "module load singularity\n" \
-                                             "singularity exec --pwd /mnt --bind ./:/mnt ./scoring.sif python -u " \
+                                             "singularity exec --pwd /mnt --bind ./:/mnt ./rse.sif python -u " \
                                              "./evaluate_predictions.py " \
                                              f"--data_set_name {data_set_name} " \
                                              f"--prune_technique {prune_technique} " \
