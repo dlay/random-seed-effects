@@ -1,6 +1,7 @@
 import json
 import pandas as pd
 from select_experiment import file
+from static import *
 
 experiment_settings = json.load(open(f"./experiment_{file}.json"))
 
@@ -9,7 +10,7 @@ info_df = pd.DataFrame(
              "Avg.#Int. per item", "Sparsity"])
 
 for data_set in experiment_settings["DATA_SET_NAMES"]:
-    data = pd.read_csv(f"./data/{data_set}/pruned/five-core_pruned.csv", sep=",", header=0)
+    data = pd.read_csv(f"./{DATA_FOLDER}/{data_set}/{PRUNE_FOLDER}/{PRUNE_FILE}", sep=",", header=0)
     users = data["user"].unique()
     items = data["item"].unique()
     interactions = data[["user", "item"]].values
