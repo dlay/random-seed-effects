@@ -6,7 +6,7 @@ This is the implementation for our study of the effects of data split random see
 ## Installation
 
 ___
-This project was tested with Python 3.9 on Windows, Mac, and Linux.  
+This project was tested with Python 3.9 and Python 3.10 on Windows, Mac, and Linux.  
 You can install the required packages using the `requirements.txt` file.  
 You can also run this with singularity. You can build the image using the `rse.def` file.
 
