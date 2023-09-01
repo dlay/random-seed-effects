@@ -4,6 +4,7 @@ import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
 import pickle as pkl
+from scipy.stats import wilcoxon
 
 
 def plot_results():
@@ -101,12 +102,19 @@ def plot_results():
                                         (plot_table["validation_type"] == validation) &
                                         (plot_table["metric"] == metric),
                                         "metric_value_relative_mean"] = (metric_vals / mean_val) * 100
+                                    plot_table.loc[
+                                        (plot_table["recommender_seed"] == recommender_seed) &
+                                        (plot_table["topn_score"] == k) &
+                                        (plot_table["validation_type"] == validation) &
+                                        (plot_table["metric"] == metric),
+                                        "metric_value_absolute_mean"] = abs(100 - ((metric_vals / mean_val) * 100))
                     plot_table.rename(columns={'recommender_seed': "Training Seed", 'shuffle_seed': "Data Shuffle Seed",
                                                'topn_score': "k", 'validation_type': "Validation",
                                                'metric': "Metric", 'metric_value': "Metric Value",
                                                "metric_value_relative_min": "Relative Metric Value (Min)",
                                                "metric_value_relative_max": "Relative Metric Value (Max)",
-                                               "metric_value_relative_mean": "Relative Metric Value (Mean)"},
+                                               "metric_value_relative_mean": "Relative Metric Value (Mean)",
+                                               "metric_value_absolute_mean": "Absolute Metric Value (Mean)"},
                                       inplace=True)
                     if data_set_name not in plot_tables:
                         plot_tables[data_set_name] = {}
@@ -184,6 +192,19 @@ def plot_results():
                         [aggregated_results[prune_technique][split_technique][recommender],
                          plot_tables[data_set_name][prune_technique][split_technique][recommender]],
                         ignore_index=True)
+
+    for prune_technique in aggregated_results.keys():
+        for split_technique in aggregated_results[prune_technique].keys():
+            for recommender in aggregated_results[prune_technique][split_technique].keys():
+                this_table = aggregated_results[prune_technique][split_technique][recommender]
+                holdout_values = this_table[this_table["Validation"] == "holdout"][
+                    "Absolute Metric Value (Mean)"].values
+                cross_validation_values = this_table[this_table["Validation"] == "cross-validation"][
+                    "Absolute Metric Value (Mean)"].values
+                statistical_test = wilcoxon(holdout_values, cross_validation_values)
+                print(f"{prune_technique} - {split_technique} - {recommender} wilcoxon test "
+                      f"holdout versus cross validation\n"
+                      f"statistic:{statistical_test.statistic} - pvalue:{statistical_test.pvalue}")
 
     for prune_technique in aggregated_results.keys():
         for split_technique in aggregated_results[prune_technique].keys():
