@@ -22,6 +22,10 @@ def clean_data(data_set_name):
                         file_data.append([line_data["userId"], line_data["id"]])
                 dfs.append(pd.DataFrame(file_data, columns=["user", "item"]))
         data = pd.concat(dfs).copy()
+    elif data_set_name == "anime":
+        data = pd.read_csv(f"{base_path_original}/anime_ratings.dat", sep="\t", engine="python")
+        data.columns = ["user", "item", "rating"]
+        data = data[data["rating"] > 6][["user", "item"]]
     elif data_set_name == "cds-and-vinyl" or data_set_name == "musical-instruments" or data_set_name == "video-games":
         data = pd.read_json(f"{base_path_original}/amazon.json", lines=True,
                             dtype={
@@ -41,13 +45,17 @@ def clean_data(data_set_name):
                            usecols=["user", "item"], header=0, sep="\t")
     elif data_set_name == "movielens-1m":
         data = pd.read_csv(f"{base_path_original}/ratings.dat", header=None, sep="::",
-                           names=["user", "item", "rating", "timestamp"], usecols=["user", "item", "rating"])
+                           names=["user", "item", "rating", "timestamp"], usecols=["user", "item", "rating"], engine="python")
         data = data[data["rating"] > 3][["user", "item"]]
     elif data_set_name == "retailrocket":
         data = pd.read_csv(f"{base_path_original}/events.csv", usecols=["visitorid", "itemid", "event"], header=0,
                            sep=",")
         data.rename(columns={"visitorid": "user", "itemid": "item"}, inplace=True)
         data = data[data["event"] == "view"][["user", "item"]].copy()
+    elif data_set_name == "steam":
+        data = pd.read_csv(f"{base_path_original}/game_purchase.dat", sep="\t",
+                           usecols=["User_ID", "Game_ID"], engine="python")
+        data.columns = ["user", "item"]
     elif data_set_name == "yelp":
         final_dict = {'user': [], 'item': []}
         with open(f"{base_path_original}/yelp_academic_dataset_review.json", encoding="utf8") as file:
@@ -84,5 +92,5 @@ if __name__ == "__main__":
     parser.add_argument('--data_set_name', dest='data_set_name', type=str, required=True)
     args = parser.parse_args()
 
-    print("Pruning original with arguments: ", args.__dict__)
+    print("Cleaning original with arguments: ", args.__dict__)
     clean_data(args.data_set_name)
