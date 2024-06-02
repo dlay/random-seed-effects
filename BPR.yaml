@@ -1,0 +1,33 @@
+# env config
+shuffle: False
+show_progress: False
+
+# dataset config
+USER_ID_FIELD: user
+ITEM_ID_FIELD: item
+load_col:
+  inter: [user, item]
+
+# model config
+embedding_size: 100
+
+# train and eval config
+epochs: 3
+
+train_batch_size: 4096
+train_neg_sample_args:
+  distribution: uniform
+  sample_num: 1
+  alpha: 1.0
+  dynamic: False
+  candidate_num: 0
+
+eval_batch_size: 4096
+eval_args:
+  group_by: none
+  order: RO
+  split: {'RS': [0.8,0,0.2]}
+  mode: full
+metrics: ['Precision', 'NDCG']
+topk: [1, 5, 10]
+valid_metric: Precision@10
