@@ -1,4 +1,5 @@
 import argparse
+import os
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -31,6 +32,12 @@ def generate_splits(data_set_name, prune_technique, split_technique, num_folds, 
     for split_index, split in enumerate(splits):
         split.to_csv(f"{base_path_split}/{split_index}_{shuffle_seed}_{prune_technique}_{split_technique}_{SPLIT_FILE}",
                      index=False)
+        stack = np.vstack((np.delete(np.concatenate(splits), split_index, axis=0), splits[split_index]))
+        df = pd.DataFrame(stack)
+        path = f"{base_path_split}/{split_index}_{shuffle_seed}_{prune_technique}_{split_technique}_split"
+        if not os.path.exists(path):
+            os.mkdir(path)
+        df.to_csv(f"{path}/{split_index}_{shuffle_seed}_{prune_technique}_{split_technique}_split.inter", sep="\t", index=False, header=["user:token", "item:token"])
     print(f"Written split data set to file.")
 
     return
