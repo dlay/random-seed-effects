@@ -2,12 +2,14 @@
   "REPRODUCIBILITY_MODE": 1,
   "DATA_SET_NAMES": [
     "adressa",
+    "anime",
     "cds-and-vinyl",
     "gowalla",
     "hetrec-lastfm",
     "movielens-1m",
     "musical-instruments",
     "retailrocket",
+    "steam",
     "video-games",
     "yelp"
   ],
@@ -19,6 +21,8 @@
   ],
   "NUM_FOLDS": 5,
   "RECOMMENDERS": [
+    "BPR",
+    "MultiVAE",
     "implicit-mf",
     "item-knn",
     "popularity"
