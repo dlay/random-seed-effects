@@ -11,7 +11,8 @@ def execute_clean_data(data_set_names):
     for data_set_name in data_set_names:
         base_path = f"./{DATA_FOLDER}/{data_set_name}/{CLEAN_FOLDER}/{CLEAN_FILE}"
         if not Path(base_path).exists():
-            subprocess.run(["py", "-3.9", "clean_data.py", "--data_set_name", f"{data_set_name}"])
+            out = subprocess.run(["python", "clean_data.py", "--data_set_name", f"{data_set_name}"], capture_output=True, text=True).stdout
+            print(out)
 
 
 def execute_prune_data(data_set_names, prune_techniques):
@@ -19,9 +20,10 @@ def execute_prune_data(data_set_names, prune_techniques):
         for prune_technique in prune_techniques:
             base_path = f"./{DATA_FOLDER}/{data_set_name}/{PRUNE_FOLDER}/{prune_technique}_{PRUNE_FILE}"
             if not Path(base_path).exists():
-                subprocess.run(
-                    ["py", "-3.9", "prune_data.py", "--data_set_name", f"{data_set_name}", "--prune_technique",
-                     f"{prune_technique}"])
+                out = subprocess.run(
+                    ["python", "prune_data.py", "--data_set_name", f"{data_set_name}", "--prune_technique",
+                     f"{prune_technique}"], capture_output=True, text=True).stdout
+                print(out)
 
 
 def execute_generate_splits(data_set_names, prune_techniques, split_techniques, num_folds, reproducibility_mode):
@@ -29,10 +31,11 @@ def execute_generate_splits(data_set_names, prune_techniques, split_techniques, 
         for prune_technique in prune_techniques:
             for split_technique in split_techniques:
                 def run_script(reproducibility_seed):
-                    subprocess.run(
-                        ["py", "-3.9", "generate_splits.py", "--data_set_name", f"{data_set_name}", "--prune_technique",
+                    out = subprocess.run(
+                        ["python", "generate_splits.py", "--data_set_name", f"{data_set_name}", "--prune_technique",
                          f"{prune_technique}", "--split_technique", f"{split_technique}", "--num_folds",
-                         f"{num_folds}", "--reproducibility_seed", f"{reproducibility_seed}"])
+                         f"{num_folds}", "--reproducibility_seed", f"{reproducibility_seed}"], capture_output=True, text=True).stdout
+                    print(out)
 
                 if bool(reproducibility_mode):
                     seeds = json.loads(open(f"project_seeds.txt", "r").read())
@@ -62,14 +65,15 @@ def execute_fit_recommender(data_set_names, prune_techniques, split_techniques, 
                                                 f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_" \
                                                 f"{recommender_seed}_{RECOMMENDER_FILE}"
                                     if not Path(base_path).exists():
-                                        subprocess.run(
-                                            ["py", "-3.9", "fit_recommender.py", "--data_set_name",
+                                        out = subprocess.run(
+                                            ["python", "fit_recommender.py", "--data_set_name",
                                              f"{data_set_name}", "--prune_technique", f"{prune_technique}",
                                              "--split_technique", f"{split_technique}", "--num_folds", f"{num_folds}",
                                              "--test_fold", f"{test_fold}", "--shuffle_seed", f"{shuffle_seed}",
                                              "--recommender", f"{recommender}", "--recommender_seeding",
                                              f"{recommender_seed}", "--reproducibility_seed",
-                                             f"{reproducibility_seed}"])
+                                             f"{reproducibility_seed}"], capture_output=True, text=True).stdout
+                                        print(out)
 
                                 if bool(reproducibility_mode):
                                     seeds = json.loads(open(f"project_seeds.txt", "r").read())
@@ -98,13 +102,14 @@ def execute_make_predictions(data_set_names, prune_techniques, split_techniques,
                                                 f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_" \
                                                 f"{recommender_seed}_{num_batches}_{run_batch}_{PREDICTION_FILE}"
                                     if not Path(base_path).exists():
-                                        subprocess.run(
-                                            ["py", "-3.9", "make_predictions.py", "--data_set_name",
+                                        out = subprocess.run(
+                                            ["python", "make_predictions.py", "--data_set_name",
                                              f"{data_set_name}", "--prune_technique", f"{prune_technique}",
                                              "--split_technique", f"{split_technique}", "--test_fold", f"{test_fold}",
                                              "--shuffle_seed", f"{shuffle_seed}", "--recommender", f"{recommender}",
                                              "--recommender_seeding", f"{recommender_seed}", "--num_batches",
-                                             f"{num_batches}", "--run_batch", f"{run_batch}"])
+                                             f"{num_batches}", "--run_batch", f"{run_batch}"], capture_output=True, text=True).stdout
+                                        print(out)
 
 
 def execute_evaluate_predictions(data_set_names, prune_techniques, split_techniques, num_folds, recommenders,
@@ -128,14 +133,15 @@ def execute_evaluate_predictions(data_set_names, prune_techniques, split_techniq
                                             f"{recommender_seed}_{num_batches}_{topn_scores_string}_" \
                                             f"{EVALUATION_FILE}"
                                 if not Path(base_path).exists():
-                                    subprocess.run(
-                                        ["py", "-3.9", "evaluate_predictions.py", "--data_set_name",
+                                    out = subprocess.run(
+                                        ["python", "evaluate_predictions.py", "--data_set_name",
                                          f"{data_set_name}", "--prune_technique", f"{prune_technique}",
                                          "--split_technique", f"{split_technique}", "--test_fold",
                                          f"{test_fold}", "--shuffle_seed", f"{shuffle_seed}", "--recommender",
                                          f"{recommender}", "--recommender_seeding", f"{recommender_seed}",
-                                         "--num_batches", f"{num_batches}", "--topn_scores"] + [f"{r}" for r in
-                                                                                                topn_scores])
+                                         "--num_batches", f"{num_batches}", "--topn_scores"] +
+                                         [f"{r}" for r in topn_scores], capture_output=True, text=True).stdout
+                                    print(out)
 
 
 def execute_evaluation_report(data_set_names, prune_techniques, split_techniques, num_folds, recommenders,
