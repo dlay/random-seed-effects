@@ -8,8 +8,9 @@ from lenskit.algorithms.basic import Random, PopScore
 from lenskit.algorithms.als import ImplicitMF
 from lenskit.algorithms.user_knn import UserUser
 from lenskit.algorithms.item_knn import ItemItem
+from lenskit.algorithms.funksvd import FunkSVD
 from static import *
-
+from run_recbole import fit_recbole
 
 def fit_recommender(data_set_name, prune_technique, split_technique, num_folds, test_fold, shuffle_seed, recommender,
                     recommender_seed, reproducibility_seed):
@@ -45,22 +46,51 @@ def fit_recommender(data_set_name, prune_technique, split_technique, num_folds, 
         recommender_alg = Recommender.adapt(UserUser(nnbrs=20, feedback='implicit', rng_spec=recommender_seed_actual))
     elif recommender == "item-knn":
         recommender_alg = Recommender.adapt(ItemItem(nnbrs=20, feedback='implicit', rng_spec=recommender_seed_actual))
+    elif recommender == "funk-svd":
+        recommender_alg = Recommender.adapt(FunkSVD(features=100, random_state=recommender_seed_actual))
+    elif recommender == "BPR":
+        params = {
+            "seed": recommender_seed_actual,
+            "data_path": f"{DATA_FOLDER}/{data_set_name}/{SPLIT_FOLDER}/",
+            "checkpoint_dir": f"{DATA_FOLDER}/{data_set_name}/recommender_{recommender}/",
+            "embedding_size": 100
+        }
+        file_name = f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_split"
+        trainer, dataloader = fit_recbole(params, file_name, recommender)
+        trainer.saved_model_file = f"{DATA_FOLDER}/{data_set_name}/recommender_{recommender}/{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_{recommender_seed}_recommender.pth"
+        trainer.fit(dataloader, saved=True, show_progress=False)
+    elif recommender == "MultiVAE":
+        params = {
+            "seed": recommender_seed_actual,
+            "data_path": f"{DATA_FOLDER}/{data_set_name}/{SPLIT_FOLDER}/",
+            "checkpoint_dir": f"{DATA_FOLDER}/{data_set_name}/recommender_{recommender}/",
+            "latent_dimension": 128,
+            "mlp_hidden_size": [600],
+            "dropout_prob": 0.5,
+            "anneal_cap": 0.2,
+            "total_anneal_steps": 200000
+        }
+        file_name = f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_split"
+        trainer, dataloader = fit_recbole(params, file_name, recommender)
+        trainer.saved_model_file = f"{DATA_FOLDER}/{data_set_name}/recommender_{recommender}/{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_{recommender_seed}_recommender.pth"
+        trainer.fit(dataloader, saved=True, show_progress=False)
     else:
         raise ValueError("Recommender not supported!")
 
-    # fit recommender
-    recommender_alg.fit(train_data)
+    if recommender != "BPR" and recommender != "MultiVAE":
+        # fit recommender
+        recommender_alg.fit(train_data)
 
-    # save recommender to file
-    base_path_recommender = f"./{DATA_FOLDER}/{data_set_name}/{RECOMMENDER_FOLDER}_{recommender}"
-    Path(base_path_recommender).mkdir(exist_ok=True)
-    binpickle.dump(recommender_alg, f"{base_path_recommender}/"
-                                    f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_"
-                                    f"{recommender_seed}_{RECOMMENDER_FILE}")
-    with open(f"{base_path_recommender}/"
-              f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_"
-              f"{recommender_seed}_{RECOMMENDER_SEED_FILE}", "w") as f:
-        f.write(f"{recommender_seed_actual}")
+        # save recommender to file
+        base_path_recommender = f"./{DATA_FOLDER}/{data_set_name}/{RECOMMENDER_FOLDER}_{recommender}"
+        Path(base_path_recommender).mkdir(exist_ok=True)
+        binpickle.dump(recommender_alg, f"{base_path_recommender}/"
+                                        f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_"
+                                        f"{recommender_seed}_{RECOMMENDER_FILE}")
+        with open(f"{base_path_recommender}/"
+                f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_"
+                f"{recommender_seed}_{RECOMMENDER_SEED_FILE}", "w") as f:
+            f.write(f"{recommender_seed_actual}")
     print(f"Fitted recommender and saved to file.")
 
     return
