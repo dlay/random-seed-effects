@@ -113,7 +113,7 @@ def execute_make_predictions(data_set_names, prune_techniques, split_techniques,
 
 
 def execute_evaluate_predictions(data_set_names, prune_techniques, split_techniques, num_folds, recommenders,
-                                 recommender_seeding, num_batches, topn_scores):
+                                 recommender_seeding, reproducibility_mode, num_batches, topn_scores):
     topn_scores_string = '-'.join([str(x) for x in topn_scores])
     for data_set_name in data_set_names:
         for prune_technique in prune_techniques:
@@ -133,14 +133,19 @@ def execute_evaluate_predictions(data_set_names, prune_techniques, split_techniq
                                             f"{recommender_seed}_{num_batches}_{topn_scores_string}_" \
                                             f"{EVALUATION_FILE}"
                                 if not Path(base_path).exists():
+                                    if bool(reproducibility_mode):
+                                        seeds = json.loads(open(f"project_seeds.txt", "r").read())
+                                        seed = seeds[data_set_name][shuffle_seed][recommender][str(test_fold)]
+                                    else:
+                                        seed = -1
                                     out = subprocess.run(
                                         ["python", "evaluate_predictions.py", "--data_set_name",
                                          f"{data_set_name}", "--prune_technique", f"{prune_technique}",
                                          "--split_technique", f"{split_technique}", "--test_fold",
                                          f"{test_fold}", "--shuffle_seed", f"{shuffle_seed}", "--recommender",
                                          f"{recommender}", "--recommender_seeding", f"{recommender_seed}",
-                                         "--num_batches", f"{num_batches}", "--topn_scores"] +
-                                         [f"{r}" for r in topn_scores], capture_output=True, text=True).stdout
+                                         "--reproducibility_seed", f"{seed}", "--num_batches", f"{num_batches}",
+                                         "--topn_scores"] + [f"{r}" for r in topn_scores], capture_output=True, text=True).stdout
                                     print(out)
 
 
@@ -177,7 +182,8 @@ elif stage == 5:
     execute_evaluate_predictions(experiment_settings["DATA_SET_NAMES"], experiment_settings["PRUNE_TECHNIQUES"],
                                  experiment_settings["SPLIT_TECHNIQUES"], experiment_settings["NUM_FOLDS"],
                                  experiment_settings["RECOMMENDERS"], experiment_settings["RECOMMENDER_SEEDING"],
-                                 experiment_settings["NUM_BATCHES"], experiment_settings["TOPN_SCORES"])
+                                 experiment_settings["REPRODUCIBILITY_MODE"], experiment_settings["NUM_BATCHES"],
+                                 experiment_settings["TOPN_SCORES"])
 elif stage == 6:
     execute_evaluation_report(experiment_settings["DATA_SET_NAMES"], experiment_settings["PRUNE_TECHNIQUES"],
                               experiment_settings["SPLIT_TECHNIQUES"], experiment_settings["NUM_FOLDS"],
