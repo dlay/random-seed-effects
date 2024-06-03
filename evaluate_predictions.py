@@ -31,7 +31,7 @@ def evaluate_predictions(data_set_name, prune_technique, split_technique, test_f
         params = {
             "seed": recommender_seed_actual,
             "data_path": f"{DATA_FOLDER}/{data_set_name}/{SPLIT_FOLDER}/",
-            "checkpoint_dir": f"{DATA_FOLDER}/{data_set_name}/saved/"
+            "checkpoint_dir": f"{DATA_FOLDER}/{data_set_name}/recommender_{recommender}/"
         }
         file_name = f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_split"
         model_name = f"{test_fold}_{shuffle_seed}_{prune_technique}_{split_technique}_{recommender_seed}_recommender.pth"
