@@ -16,7 +16,7 @@ anneal_cap: 0.2
 total_anneal_steps: 200000
 
 # train and eval config
-epochs: 3
+epochs: 50
 
 train_batch_size: 4096
 train_neg_sample_args:
